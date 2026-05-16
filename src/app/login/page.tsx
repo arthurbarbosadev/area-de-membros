@@ -4,7 +4,7 @@ import { Brand } from "@/components/Brand";
 import { LoginForm } from "./login-form";
 
 export const metadata = {
-  title: "Entrar · Membros",
+  title: "Entrar",
 };
 
 export default function LoginPage() {
@@ -23,7 +23,7 @@ export default function LoginPage() {
             Bem-vindo de volta
           </h1>
           <p className="mt-2 text-sm text-white/60 leading-relaxed">
-            Entre com o e-mail aprovado pela nossa curadoria.
+            Acesse sua conta LowDigital com o e-mail liberado pela curadoria.
           </p>
 
           <Suspense fallback={<div className="mt-7 h-40 animate-pulse bg-white/5 rounded-xl" />}>

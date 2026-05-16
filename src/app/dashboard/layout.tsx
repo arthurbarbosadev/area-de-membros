@@ -25,6 +25,7 @@ export default async function DashboardLayout({
     .trim()
     .charAt(0)
     .toUpperCase();
+  const fullName = profile?.full_name ?? "Aluno";
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -45,7 +46,7 @@ export default async function DashboardLayout({
             <div className="hidden sm:flex items-center gap-3 text-right">
               <div>
                 <div className="text-sm font-medium text-white leading-tight">
-                  {profile?.full_name ?? "Membro"}
+                  {fullName}
                 </div>
                 <div className="text-xs text-white/50 leading-tight">
                   {profile?.email ?? user.email}

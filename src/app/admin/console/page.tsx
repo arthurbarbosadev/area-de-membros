@@ -7,7 +7,7 @@ import { ConsoleClient } from "./console-client";
 import { AdminLogout } from "./admin-logout";
 
 export const metadata = {
-  title: "Console admin · Membros",
+  title: "Console admin",
   robots: { index: false, follow: false },
 };
 

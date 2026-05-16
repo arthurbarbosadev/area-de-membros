@@ -30,13 +30,13 @@ export default async function DashboardPage() {
         <div>
           <span className="chip">
             <span className="h-1.5 w-1.5 rounded-full bg-marine-mint" />
-            Sua área de membro
+            Sua área LowDigital
           </span>
           <h1 className="font-display text-4xl font-semibold tracking-tight mt-4">
             Suas aulas
           </h1>
           <p className="mt-2 text-white/60 max-w-xl">
-            Conteúdo liberado conforme nossa curadoria. Bons estudos.
+            Conteúdo liberado para você. Assista no seu ritmo, sem prazo.
           </p>
         </div>
       </div>

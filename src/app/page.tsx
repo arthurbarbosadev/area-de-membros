@@ -19,13 +19,13 @@ export default function Home() {
       <section className="max-w-6xl mx-auto px-6 pt-24 pb-32 text-center">
         <span className="chip animate-fade-up">
           <span className="h-1.5 w-1.5 rounded-full bg-marine-mint animate-pulse" />
-          Acesso por convite curado
+          Turma fechada · acesso por aprovação
         </span>
 
         <h1 className="font-display text-5xl sm:text-6xl md:text-7xl font-semibold tracking-tight mt-6 animate-fade-up">
-          A área de membros{" "}
+          LowDigital.{" "}
           <span className="bg-gradient-to-r from-marine-mint via-marine-glow to-navy-glow bg-clip-text text-transparent">
-            que não se parece com nenhuma outra
+            O curso para quem quer construir de verdade.
           </span>
         </h1>
 
@@ -33,8 +33,9 @@ export default function Home() {
           className="mt-6 text-lg md:text-xl text-white/70 max-w-2xl mx-auto animate-fade-up"
           style={{ animationDelay: "120ms" }}
         >
-          Conteúdo exclusivo, ambiente privado, zero spam. Solicite acesso —
-          nossa curadoria libera apenas membros aprovados.
+          Sem fórmulas mágicas, sem promessa de milhão. Conteúdo denso, direto
+          ao ponto, com curadoria de quem entra. Solicite acesso e construa
+          junto com a gente.
         </p>
 
         <div
@@ -66,20 +67,20 @@ export default function Home() {
           style={{ animationDelay: "360ms" }}
         >
           <FeatureCard
-            title="Acesso curado"
-            description="Cada membro é aprovado manualmente. Comunidade densa, sem ruído."
+            title="Turma selecionada"
+            description="Cada aluno é aprovado manualmente. Sala densa, sem ruído de iniciantes desinteressados."
             icon={
               <path d="M9 12l2 2 4-4m5.5-2A9.5 9.5 0 1 1 2.5 12 9.5 9.5 0 0 1 21.5 10z" />
             }
           />
           <FeatureCard
-            title="Conteúdo evolutivo"
-            description="Aulas e atualizações constantes — você assiste no seu ritmo."
+            title="Conteúdo vivo"
+            description="Aulas novas e atualizações constantes — acompanhe no seu ritmo, sem prazo de validade."
             icon={<path d="m22 8-10 6L2 8m20 0v8a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V8" />}
           />
           <FeatureCard
-            title="Segurança em camadas"
-            description="Autenticação e autorização rígidas, sem brechas para o acaso."
+            title="Ambiente blindado"
+            description="Plataforma própria, autenticação rígida e acesso só para quem foi liberado."
             icon={
               <path d="M12 2 4 6v6c0 5 3.5 9 8 10 4.5-1 8-5 8-10V6l-8-4z" />
             }
@@ -88,7 +89,7 @@ export default function Home() {
       </section>
 
       <footer className="border-t border-white/5 py-8 text-center text-sm text-white/40">
-        © {new Date().getFullYear()} Membros. Todos os direitos reservados.
+        © {new Date().getFullYear()} LowDigital. Todos os direitos reservados.
       </footer>
     </main>
   );

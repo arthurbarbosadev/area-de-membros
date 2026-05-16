@@ -3,7 +3,7 @@ import { Brand } from "@/components/Brand";
 import { SignupForm } from "./signup-form";
 
 export const metadata = {
-  title: "Solicitar acesso · Membros",
+  title: "Solicitar acesso",
 };
 
 export default function SignupPage() {
@@ -23,11 +23,11 @@ export default function SignupPage() {
             Acesso por aprovação
           </span>
           <h1 className="font-display text-3xl font-semibold mt-5 tracking-tight">
-            Solicite seu acesso
+            Entre para a LowDigital
           </h1>
           <p className="mt-2 text-sm text-white/60 leading-relaxed">
-            Preencha seu nome e e-mail. Você só vai conseguir entrar depois que
-            um administrador aprovar manualmente sua solicitação.
+            Deixe seu nome e e-mail. Avaliamos cada solicitação manualmente e
+            você recebe o convite quando for aprovado.
           </p>
 
           <SignupForm />

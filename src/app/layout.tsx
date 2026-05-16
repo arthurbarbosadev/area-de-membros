@@ -15,8 +15,12 @@ const display = Space_Grotesk({
 });
 
 export const metadata: Metadata = {
-  title: "Área de Membros",
-  description: "Plataforma exclusiva de membros com acesso curado.",
+  title: {
+    default: "LowDigital · Área de membros",
+    template: "%s · LowDigital",
+  },
+  description:
+    "LowDigital — o curso para quem quer construir negócios digitais de verdade. Acesso curado, conteúdo direto ao ponto.",
 };
 
 export default function RootLayout({

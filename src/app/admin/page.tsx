@@ -5,7 +5,7 @@ import { isAdminSessionValid } from "@/lib/admin-session";
 import { AdminGateForm } from "./gate-form";
 
 export const metadata = {
-  title: "Painel admin · Membros",
+  title: "Painel admin",
   robots: { index: false, follow: false },
 };
 

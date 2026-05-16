@@ -47,7 +47,7 @@ export async function POST(req: Request) {
     type,
     email,
     options: {
-      redirectTo: `${origin}/auth/callback?next=/set-password`,
+      redirectTo: `${origin}/auth/callback?next=/dashboard`,
       ...(type === "invite" ? { data: { full_name: fullName } } : {}),
     },
   });

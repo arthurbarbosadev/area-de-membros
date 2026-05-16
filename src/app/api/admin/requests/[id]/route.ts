@@ -68,7 +68,7 @@ export async function POST(
   const link = await generateAccessLink({
     email,
     fullName: request.full_name,
-    redirectTo: `${origin}/auth/callback?next=/set-password`,
+    redirectTo: `${origin}/auth/callback?next=/dashboard`,
   });
 
   if (!link.ok) {

@@ -146,7 +146,7 @@ function AccessLinkModal({
   }
 
   const waMessage = encodeURIComponent(
-    `Olá${link.full_name ? `, ${link.full_name}` : ""}! Seu acesso à LowDigital foi liberado. Clique no link para definir sua senha e entrar:\n\n${link.url}`,
+    `Olá${link.full_name ? `, ${link.full_name}` : ""}! Seu acesso à LowDigital está liberado. Clique no link para entrar:\n\n${link.url}`,
   );
 
   return (
@@ -175,8 +175,8 @@ function AccessLinkModal({
         </h3>
         <p className="mt-2 text-sm text-white/60 leading-relaxed">
           Nenhum e-mail foi enviado. Copie o link e mande pra pessoa via
-          WhatsApp, Telegram, ou onde preferir. Ao abrir, ela define a senha e
-          entra automaticamente.
+          WhatsApp, Telegram, ou onde preferir. Ao clicar, ela entra direto
+          na área de membros — sem senha, sem cadastro.
         </p>
 
         <div className="mt-5 p-3 rounded-xl bg-ink-950 border border-white/5 font-mono text-xs text-white/75 break-all max-h-32 overflow-y-auto">

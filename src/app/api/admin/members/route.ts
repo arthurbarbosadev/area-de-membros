@@ -24,41 +24,49 @@ export async function POST(req: Request) {
   }
 
   const supabase = getSupabaseAdmin();
+  const origin = new URL(req.url).origin;
 
+  // 1. Allow-list.
   const { error: allowErr } = await supabase
     .from("allowed_emails")
     .upsert({ email });
   if (allowErr) {
+    console.error("[members] allow-list upsert failed:", allowErr);
     return NextResponse.json(
       { error: "Falha ao liberar." },
       { status: 500 },
     );
   }
 
-  const origin = new URL(req.url).origin;
-  const { error: inviteErr } = await supabase.auth.admin.inviteUserByEmail(
-    email,
-    {
-      data: { full_name: fullName },
-      redirectTo: `${origin}/auth/callback?next=/dashboard`,
-    },
-  );
+  // 2. Check if user exists — choose between invite (new) and recovery (exists).
+  const { data: list } = await supabase.auth.admin.listUsers({ perPage: 1000 });
+  const exists = list?.users.some((u) => u.email?.toLowerCase() === email);
+  const type = exists ? "recovery" : "invite";
 
-  if (
-    inviteErr &&
-    !(
-      inviteErr.message?.toLowerCase().includes("already") ||
-      inviteErr.message?.toLowerCase().includes("registered")
-    )
-  ) {
+  const { data, error } = await supabase.auth.admin.generateLink({
+    type,
+    email,
+    options: {
+      redirectTo: `${origin}/auth/callback?next=/set-password`,
+      ...(type === "invite" ? { data: { full_name: fullName } } : {}),
+    },
+  });
+
+  if (error || !data?.properties?.action_link) {
+    console.error("[members] generateLink failed:", error);
     await supabase.from("allowed_emails").delete().eq("email", email);
     return NextResponse.json(
-      { error: "Falha ao enviar convite." },
+      { error: "Falha ao gerar link de acesso." },
       { status: 500 },
     );
   }
 
-  return NextResponse.json({ ok: true });
+  return NextResponse.json({
+    ok: true,
+    action_link: data.properties.action_link,
+    email,
+    full_name: fullName,
+  });
 }
 
 export async function DELETE(req: Request) {
@@ -73,15 +81,10 @@ export async function DELETE(req: Request) {
   }
 
   const supabase = getSupabaseAdmin();
-
-  // Remove from allow-list.
   await supabase.from("allowed_emails").delete().eq("email", email);
 
-  // Find and delete the auth user (revokes access entirely).
   const { data: list } = await supabase.auth.admin.listUsers({ perPage: 1000 });
-  const target = list?.users.find(
-    (u) => u.email?.toLowerCase() === email,
-  );
+  const target = list?.users.find((u) => u.email?.toLowerCase() === email);
   if (target) {
     await supabase.auth.admin.deleteUser(target.id);
   }

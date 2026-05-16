@@ -54,6 +54,7 @@ export async function POST(req: Request) {
     .single();
 
   if (error) {
+    console.error("[admin/lessons] insert failed:", error);
     return NextResponse.json({ error: "Falha ao criar." }, { status: 500 });
   }
   return NextResponse.json({ ok: true, lesson: data });

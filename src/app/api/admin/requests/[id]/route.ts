@@ -48,8 +48,9 @@ export async function POST(
   }
 
   const email = request.email.toLowerCase();
+  const origin = new URL(req.url).origin;
 
-  // 1. Add email to allow-list (so the auth.users trigger lets us insert).
+  // 1. Allow-list (so the auth.users trigger lets us insert).
   const { error: allowErr } = await supabase
     .from("allowed_emails")
     .upsert({ email });
@@ -61,42 +62,67 @@ export async function POST(
     );
   }
 
-  // 2. Send invite (creates the auth.users row) with the user's full name.
-  const origin = new URL(req.url).origin;
-  const { error: inviteErr } = await supabase.auth.admin.inviteUserByEmail(
+  // 2. Generate the invite link WITHOUT sending any email.
+  //    generateLink returns the link to us; we ship it back to the admin
+  //    who shares it manually with the user (WhatsApp, etc).
+  const link = await generateAccessLink({
     email,
-    {
-      data: { full_name: request.full_name },
-      redirectTo: `${origin}/auth/callback?next=/dashboard`,
-    },
-  );
-  if (inviteErr) {
-    console.error("[approve] invite error:", inviteErr);
-    // If user already existed in auth.users, surface a friendlier message.
-    if (
-      inviteErr.message?.toLowerCase().includes("already") ||
-      inviteErr.message?.toLowerCase().includes("registered")
-    ) {
-      // Mark approved anyway — the user already has access.
-      await supabase
-        .from("signup_requests")
-        .update({ status: "approved", reviewed_at: new Date().toISOString() })
-        .eq("id", id);
-      return NextResponse.json({ ok: true, note: "user-already-exists" });
-    }
-    // Roll back allow-list addition to keep things consistent.
+    fullName: request.full_name,
+    redirectTo: `${origin}/auth/callback?next=/set-password`,
+  });
+
+  if (!link.ok) {
     await supabase.from("allowed_emails").delete().eq("email", email);
+    console.error("[approve] generateLink failed:", link.error);
     return NextResponse.json(
-      { error: "Falha ao enviar convite." },
+      { error: link.error ?? "Falha ao gerar link." },
       { status: 500 },
     );
   }
 
-  // 3. Mark request as approved.
+  // 3. Mark request approved.
   await supabase
     .from("signup_requests")
     .update({ status: "approved", reviewed_at: new Date().toISOString() })
     .eq("id", id);
 
-  return NextResponse.json({ ok: true });
+  return NextResponse.json({
+    ok: true,
+    action_link: link.url,
+    email,
+    full_name: request.full_name,
+  });
+}
+
+async function generateAccessLink(params: {
+  email: string;
+  fullName?: string;
+  redirectTo: string;
+}): Promise<{ ok: true; url: string } | { ok: false; error: string }> {
+  const supabase = getSupabaseAdmin();
+
+  // Check if the user already exists. If yes, use 'recovery' (password reset
+  // link) instead of 'invite' (which would fail).
+  const { data: list } = await supabase.auth.admin.listUsers({ perPage: 1000 });
+  const exists = list?.users.some(
+    (u) => u.email?.toLowerCase() === params.email,
+  );
+
+  const type = exists ? "recovery" : "invite";
+
+  const { data, error } = await supabase.auth.admin.generateLink({
+    type,
+    email: params.email,
+    options: {
+      redirectTo: params.redirectTo,
+      ...(type === "invite" && params.fullName
+        ? { data: { full_name: params.fullName } }
+        : {}),
+    },
+  });
+
+  if (error || !data?.properties?.action_link) {
+    return { ok: false, error: error?.message ?? "Sem action_link." };
+  }
+  return { ok: true, url: data.properties.action_link };
 }

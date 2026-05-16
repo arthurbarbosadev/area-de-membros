@@ -27,6 +27,8 @@ type Lesson = {
 
 type Tab = "requests" | "members" | "lessons";
 
+type AccessLink = { url: string; email: string; full_name?: string };
+
 export function ConsoleClient({
   initialRequests,
   initialAllowed,
@@ -38,6 +40,7 @@ export function ConsoleClient({
 }) {
   const [tab, setTab] = useState<Tab>("requests");
   const [toast, setToast] = useState<string>("");
+  const [accessLink, setAccessLink] = useState<AccessLink | null>(null);
 
   const pendingCount = useMemo(
     () => initialRequests.filter((r) => r.status === "pending").length,
@@ -85,12 +88,14 @@ export function ConsoleClient({
           <RequestsPanel
             initial={initialRequests}
             onToast={setToast}
+            onAccessLink={setAccessLink}
           />
         )}
         {tab === "members" && (
           <MembersPanel
             initial={initialAllowed}
             onToast={setToast}
+            onAccessLink={setAccessLink}
           />
         )}
         {tab === "lessons" && (
@@ -99,6 +104,103 @@ export function ConsoleClient({
             onToast={setToast}
           />
         )}
+      </div>
+
+      {accessLink && (
+        <AccessLinkModal
+          link={accessLink}
+          onClose={() => setAccessLink(null)}
+        />
+      )}
+    </div>
+  );
+}
+
+/* ---------------- Access link modal -------------------------------- */
+
+function AccessLinkModal({
+  link,
+  onClose,
+}: {
+  link: AccessLink;
+  onClose: () => void;
+}) {
+  const [copied, setCopied] = useState(false);
+
+  async function copy() {
+    try {
+      await navigator.clipboard.writeText(link.url);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      // fallback
+      const ta = document.createElement("textarea");
+      ta.value = link.url;
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand("copy");
+      document.body.removeChild(ta);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    }
+  }
+
+  const waMessage = encodeURIComponent(
+    `Olá${link.full_name ? `, ${link.full_name}` : ""}! Seu acesso à LowDigital foi liberado. Clique no link para definir sua senha e entrar:\n\n${link.url}`,
+  );
+
+  return (
+    <div
+      className="fixed inset-0 z-50 grid place-items-center p-4 bg-ink-950/80 backdrop-blur-sm animate-fade-up"
+      onClick={onClose}
+    >
+      <div
+        className="card-glass w-full max-w-lg p-6 sm:p-8 relative"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <button
+          onClick={onClose}
+          className="absolute top-4 right-4 text-white/40 hover:text-white text-xl leading-none"
+          aria-label="Fechar"
+        >
+          ×
+        </button>
+
+        <span className="chip">
+          <span className="h-1.5 w-1.5 rounded-full bg-marine-mint" />
+          Link gerado
+        </span>
+        <h3 className="font-display text-2xl font-semibold mt-4 tracking-tight">
+          Envie esse link para {link.full_name ?? link.email}
+        </h3>
+        <p className="mt-2 text-sm text-white/60 leading-relaxed">
+          Nenhum e-mail foi enviado. Copie o link e mande pra pessoa via
+          WhatsApp, Telegram, ou onde preferir. Ao abrir, ela define a senha e
+          entra automaticamente.
+        </p>
+
+        <div className="mt-5 p-3 rounded-xl bg-ink-950 border border-white/5 font-mono text-xs text-white/75 break-all max-h-32 overflow-y-auto">
+          {link.url}
+        </div>
+
+        <div className="mt-4 flex flex-col sm:flex-row gap-2">
+          <button onClick={copy} className="btn-glow flex-1">
+            {copied ? "Copiado!" : "Copiar link"}
+          </button>
+          <a
+            href={`https://wa.me/?text=${waMessage}`}
+            target="_blank"
+            rel="noreferrer noopener"
+            className="btn-ghost flex-1 justify-center"
+          >
+            Abrir no WhatsApp
+          </a>
+        </div>
+
+        <p className="mt-5 text-xs text-white/40">
+          ⚠️ Esse link expira em ~24h e funciona uma única vez. Se a pessoa
+          perder, gere outro pela aba Membros.
+        </p>
       </div>
     </div>
   );
@@ -133,9 +235,11 @@ function TabButton({
 function RequestsPanel({
   initial,
   onToast,
+  onAccessLink,
 }: {
   initial: SignupRequest[];
   onToast: (msg: string) => void;
+  onAccessLink: (link: AccessLink) => void;
 }) {
   const router = useRouter();
   const [items, setItems] = useState(initial);
@@ -149,9 +253,9 @@ function RequestsPanel({
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ action }),
     });
+    const body = await res.json().catch(() => ({}));
     setBusyId("");
     if (!res.ok) {
-      const body = await res.json().catch(() => ({}));
       onToast(body?.error ?? "Falha na ação.");
       return;
     }
@@ -162,7 +266,15 @@ function RequestsPanel({
           : r,
       ),
     );
-    onToast(action === "approve" ? "Acesso aprovado e e-mail enviado." : "Solicitação rejeitada.");
+    if (action === "approve" && body?.action_link) {
+      onAccessLink({
+        url: body.action_link,
+        email: body.email,
+        full_name: body.full_name,
+      });
+    } else {
+      onToast(action === "approve" ? "Aprovado." : "Solicitação rejeitada.");
+    }
     startTransition(() => router.refresh());
   }
 
@@ -227,9 +339,11 @@ function StatusBadge({ status }: { status: SignupRequest["status"] }) {
 function MembersPanel({
   initial,
   onToast,
+  onAccessLink,
 }: {
   initial: AllowedEmail[];
   onToast: (msg: string) => void;
+  onAccessLink: (link: AccessLink) => void;
 }) {
   const router = useRouter();
   const [items, setItems] = useState(initial);
@@ -256,9 +370,19 @@ function MembersPanel({
       { email: email.toLowerCase(), added_at: new Date().toISOString() },
       ...prev.filter((p) => p.email !== email.toLowerCase()),
     ]);
+    const generatedName = name;
+    const generatedEmail = email.toLowerCase();
     setEmail("");
     setName("");
-    onToast("Membro liberado e convite enviado.");
+    if (body?.action_link) {
+      onAccessLink({
+        url: body.action_link,
+        email: generatedEmail,
+        full_name: generatedName,
+      });
+    } else {
+      onToast("Membro liberado.");
+    }
     router.refresh();
   }
 

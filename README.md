@@ -249,3 +249,5 @@ MIT — use, modifique, distribua como quiser. Créditos são sempre simpáticos
 Feito com intenção por [Arthur Barbosa](https://github.com/arthurbarbosadev)
 
 </div>
+#   a r t h u r b a r b o s a d e v  
+ 
